@@ -5,13 +5,10 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
-    "crawl": "python3 crawler.py",
-    "crawl-stats": "python3 crawler.py stats",
-    "dns-test": "python3 crawler.py dns-test"
+    "dev": "nodemon server.js"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": "18.x"
   },
   "dependencies": {
     "better-sqlite3": "^9.4.3",
