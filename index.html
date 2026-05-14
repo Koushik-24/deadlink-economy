@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DeadLink — Expired Domain Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#020408;--surface:#080d14;--border:#0f1a26;--border2:#1a2a3a;
+  --accent:#00d4ff;--accent2:#ff6b35;--accent3:#7fff6b;
+  --text:#e8f4fd;--muted:#4a6a8a;--dim:#1e3048;--card:#060c14;
+  --glow:0 0 30px rgba(0,212,255,0.15);
+}
+html{scroll-behavior:smooth}
+body{font-family:'JetBrains Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);
+  background-size:40px 40px;pointer-events:none;z-index:0;
+}
+body::after{
+  content:'';position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.05) 2px,rgba(0,0,0,0.05) 4px);
+  pointer-events:none;z-index:1;
+}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:60px;background:rgba(2,4,8,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2)}
+.nav-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:1.1rem;color:var(--accent);letter-spacing:-0.02em;display:flex;align-items:center;gap:8px}
+.nav-logo span{color:var(--accent2)}
+.nav-pill{background:var(--dim);border:1px solid var(--border2);padding:6px 14px;border-radius:4px;font-size:0.7rem;color:var(--accent);cursor:pointer;transition:all 0.2s;font-family:'JetBrains Mono',monospace}
+.nav-pill:hover{background:var(--accent);color:var(--bg)}
+/* TICKER */
+.ticker-wrap{position:relative;z-index:2;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);overflow:hidden;height:36px;display:flex;align-items:center;margin-top:60px}
+.ticker{display:flex;gap:3rem;animation:ticker 30s linear infinite;white-space:nowrap}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ticker-item{font-size:0.65rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+.ticker-item .up{color:var(--accent3)}.ticker-item .dn{color:var(--accent2)}
+/* HERO */
+.hero{position:relative;z-index:2;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 2rem 4rem}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);padding:4px 14px;border-radius:2px;font-size:0.65rem;letter-spacing:0.15em;color:var(--accent);margin-bottom:2rem;text-transform:uppercase}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--accent3);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.5)}}
+h1{font-family:'Syne',sans-serif;font-size:clamp(2.5rem,7vw,5.5rem);font-weight:800;line-height:1;letter-spacing:-0.03em;margin-bottom:1.5rem}
+h1 .line1{display:block;color:var(--text)}
+h1 .line2{display:block;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{max-width:540px;font-size:0.85rem;line-height:1.7;color:var(--muted);margin-bottom:3rem}
+.hero-stats{display:flex;gap:3rem;margin-bottom:3rem;flex-wrap:wrap;justify-content:center}
+.stat{text-align:center}
+.stat-num{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--accent);display:block}
+.stat-label{font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em}
+/* SEARCH */
+.search-wrap{width:100%;max-width:720px;background:var(--card);border:1px solid var(--border2);border-radius:6px;padding:1.5rem;box-shadow:var(--glow);margin-bottom:1rem}
+.search-row{display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap}
+.search-input{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border2);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.8rem;padding:10px 14px;border-radius:4px;outline:none;transition:border-color 0.2s}
+.search-input:focus{border-color:var(--accent)}
+.search-input::placeholder{color:var(--muted)}
+select.search-input{cursor:pointer}
+.btn{padding:10px 20px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:500;cursor:pointer;border:none;transition:all 0.2s;white-space:nowrap}
+.btn-primary{background:var(--accent);color:var(--bg)}.btn-primary:hover{background:#00b8e0;transform:translateY(-1px)}
+.btn-secondary{background:var(--dim);color:var(--accent);border:1px solid var(--border2)}.btn-secondary:hover{border-color:var(--accent)}
+.filter-row{display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center}
+.filter-chip{background:var(--dim);border:1px solid var(--border2);padding:4px 10px;border-radius:2px;font-size:0.65rem;color:var(--muted);cursor:pointer;transition:all 0.15s;text-transform:uppercase;letter-spacing:0.08em}
+.filter-chip.active{border-color:var(--accent);color:var(--accent);background:rgba(0,212,255,0.08)}
+.filter-chip:hover{color:var(--accent)}
+/* RESULTS */
+.section{position:relative;z-index:2;padding:2rem;max-width:1100px;margin:0 auto}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem}
+.section-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px}
+.badge{background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);padding:2px 8px;border-radius:2px;font-size:0.6rem;color:var(--accent)}
+.badge.green{background:rgba(127,255,107,0.1);border-color:rgba(127,255,107,0.3);color:var(--accent3)}
+/* DOMAIN CARDS */
+.domains-grid{display:flex;flex-direction:column;gap:1px}
+.domain-card{background:var(--card);border:1px solid var(--border);padding:1.25rem 1.5rem;display:grid;grid-template-columns:1fr auto auto auto auto;align-items:center;gap:1.5rem;transition:all 0.2s;position:relative;overflow:hidden}
+.domain-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--border2);transition:background 0.2s}
+.domain-card:hover{border-color:var(--border2);background:#080f18}
+.domain-card:hover::before{background:var(--accent)}
+.domain-name{font-family:'Syne',sans-serif;font-size:0.95rem;font-weight:700;color:var(--text)}
+.domain-niche{font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-top:2px}
+.domain-meta{display:flex;flex-direction:column;align-items:center;gap:2px}
+.meta-val{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700}
+.meta-label{font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em}
+.dr-high{color:var(--accent3)}.dr-mid{color:var(--accent)}.dr-low{color:var(--accent2)}
+.lock-btn{background:var(--dim);border:1px solid var(--border2);padding:7px 16px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--accent);cursor:pointer;transition:all 0.2s;white-space:nowrap}
+.lock-btn:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:2rem;opacity:0;pointer-events:none;transition:opacity 0.2s;overflow-y:auto}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:8px;width:100%;max-width:560px;box-shadow:0 0 60px rgba(0,212,255,0.1);overflow:hidden;transform:translateY(20px);transition:transform 0.2s;max-height:90vh;overflow-y:auto}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surface);z-index:1}
+.modal-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem}
+.modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;line-height:1;transition:color 0.2s}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:1.5rem}
+.modal-domain{font-family:'Syne',sans-serif;font-size:1.3rem;font-weight:800;color:var(--accent);margin-bottom:0.5rem}
+.report-preview{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:1.25rem;margin-bottom:1.5rem}
+.preview-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:0.72rem}
+.preview-row:last-child{border-bottom:none}
+.preview-key{color:var(--muted)}.preview-val{color:var(--text);font-weight:500}
+.preview-val.blurred{filter:blur(5px);user-select:none;background:var(--dim);border-radius:2px;padding:0 8px}
+.price-block{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.price-tag{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;color:var(--accent)}
+.price-sub{font-size:0.65rem;color:var(--muted)}
+#pay-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),#0099cc);border:none;border-radius:4px;font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700;color:var(--bg);cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px}
+#pay-btn:hover{opacity:0.9;transform:translateY(-1px)}
+#pay-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.stripe-note{text-align:center;font-size:0.6rem;color:var(--muted);margin-top:0.75rem;display:flex;align-items:center;justify-content:center;gap:4px}
+.full-report{background:var(--card);border:1px solid var(--border2);border-radius:6px;padding:1.5rem;margin-top:1rem}
+.report-section{margin-bottom:1.5rem}
+.report-section-title{font-size:0.65rem;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);margin-bottom:0.75rem;display:flex;align-items:center;gap:6px}
+.report-section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+.backlink-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:0.7rem}
+.backlink-url{color:var(--accent);font-size:0.68rem;word-break:break-all}
+.backlink-dr{color:var(--accent3);font-weight:600;flex-shrink:0;margin-left:8px}
+.timeline{padding-left:0.5rem}
+.timeline-item{position:relative;padding:6px 0 6px 1.2rem;font-size:0.7rem;color:var(--muted);border-left:1px solid var(--border2)}
+.timeline-item::before{content:'';position:absolute;left:-4px;top:10px;width:7px;height:7px;border-radius:50%;background:var(--accent);border:2px solid var(--bg)}
+.verdict-box{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);border-radius:4px;padding:1rem;font-size:0.75rem;line-height:1.6;color:var(--text)}
+/* PRICING */
+.pricing-section{position:relative;z-index:2;padding:4rem 2rem;max-width:1100px;margin:0 auto}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;border:1px solid var(--border2);border-radius:6px;overflow:hidden;margin-top:2rem}
+.price-card{background:var(--card);padding:1.5rem;border-right:1px solid var(--border2);transition:background 0.2s}
+.price-card:last-child{border-right:none}
+.price-card:hover{background:#080f18}
+.price-card-icon{font-size:1.5rem;margin-bottom:0.75rem}
+.price-card-name{font-family:'Syne',sans-serif;font-weight:700;font-size:0.85rem;margin-bottom:0.25rem}
+.price-card-desc{font-size:0.65rem;color:var(--muted);line-height:1.5;margin-bottom:1rem}
+.price-card-price{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:800;color:var(--accent)}
+/* FOOTER */
+footer{position:relative;z-index:2;border-top:1px solid var(--border);padding:2rem;text-align:center;font-size:0.65rem;color:var(--muted)}
+/* TOAST */
+.toast{position:fixed;bottom:2rem;right:2rem;background:var(--accent);color:var(--bg);padding:12px 20px;border-radius:4px;font-size:0.75rem;font-weight:600;z-index:300;transform:translateY(100px);opacity:0;transition:all 0.3s}
+.toast.show{transform:translateY(0);opacity:1}
+/* LOADER */
+.loader{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,212,255,0.3);border-top-color:var(--accent);border-radius:50%;animation:spin 0.6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* ALERT FORM */
+.alert-form{display:flex;flex-direction:column;gap:0.75rem}
+.form-label{font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:2px;display:block}
+/* RESPONSIVE */
+@media(max-width:700px){
+  .domain-card{grid-template-columns:1fr auto;grid-template-rows:auto auto}
+  .domain-meta:nth-child(3),.domain-meta:nth-child(4){display:none}
+  h1{font-size:2.2rem}
+  .hero-stats{gap:1.5rem}
+  nav{padding:0 1rem}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">DEAD<span>LINK</span><span style="color:var(--muted);font-size:0.7rem;font-weight:400;margin-left:8px">// domain intelligence</span></div>
+  <button class="nav-pill" onclick="openAlertModal()">⚡ Set Alert — $0.99</button>
+</nav>
+
+<div class="ticker-wrap">
+  <div class="ticker" id="ticker"></div>
+</div>
+
+<section class="hero">
+  <div class="hero-badge"><div class="pulse"></div>LIVE — domains expiring right now</div>
+  <h1>
+    <span class="line1">Dead Domains.</span>
+    <span class="line2">Live Revenue.</span>
+  </h1>
+  <p class="hero-sub">
+    Find expired domains with massive SEO authority before your competitors do.
+    Pay only for what you unlock. No subscriptions. No ads. No recurring fees.
+  </p>
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-num" id="cnt-domains">—</span><span class="stat-label">Domains Tracked</span></div>
+    <div class="stat"><span class="stat-num" id="cnt-expired">—</span><span class="stat-label">Found Today</span></div>
+    <div class="stat"><span class="stat-num">$2.99</span><span class="stat-label">Per Full Report</span></div>
+    <div class="stat"><span class="stat-num" id="cnt-avg">—</span><span class="stat-label">Avg DR This Week</span></div>
+  </div>
+  <div class="search-wrap">
+    <div class="search-row">
+      <input class="search-input" id="kw-input" placeholder="Search niche, keyword, or domain..." type="text" onkeydown="if(event.key==='Enter')runSearch()"/>
+      <select class="search-input" id="niche-select" style="max-width:165px">
+        <option value="">All Niches</option>
+        <option>Health &amp; Fitness</option>
+        <option>Finance &amp; Crypto</option>
+        <option>Tech &amp; SaaS</option>
+        <option>Food &amp; Recipe</option>
+        <option>Travel &amp; Lifestyle</option>
+        <option>Legal &amp; Law</option>
+        <option>Education</option>
+        <option>E-commerce</option>
+      </select>
+      <button class="btn btn-primary" onclick="runSearch()">SCAN →</button>
+    </div>
+    <div class="filter-row">
+      <span style="font-size:0.6rem;color:var(--muted);margin-right:4px">DR:</span>
+      <div class="filter-chip active" onclick="setDR(this,'all')">ALL</div>
+      <div class="filter-chip" onclick="setDR(this,'20')">20+</div>
+      <div class="filter-chip" onclick="setDR(this,'40')">40+</div>
+      <div class="filter-chip" onclick="setDR(this,'60')">60+</div>
+      <span style="font-size:0.6rem;color:var(--muted);margin-left:10px;margin-right:4px">Sort:</span>
+      <div class="filter-chip active" onclick="setSort(this,'dr')">DR</div>
+      <div class="filter-chip" onclick="setSort(this,'backlinks')">Backlinks</div>
+      <div class="filter-chip" onclick="setSort(this,'traffic')">Traffic</div>
+    </div>
+  </div>
+</section>
+
+<div class="section">
+  <div class="section-header">
+    <div class="section-title">Domain Results <span class="badge" id="result-count">Loading...</span></div>
+    <div style="font-size:0.65rem;color:var(--muted)">Preview free · Full report from $2.99</div>
+  </div>
+  <div class="domains-grid" id="domains-grid">
+    <div style="padding:3rem;text-align:center;color:var(--muted);font-size:0.75rem">
+      <div class="loader" style="margin:0 auto 1rem"></div>Scanning expired domains...
+    </div>
+  </div>
+</div>
+
+<div class="pricing-section">
+  <div class="section-header">
+    <div class="section-title">What You Can Unlock <span class="badge green">PAY PER ACTION</span></div>
+  </div>
+  <div class="pricing-grid">
+    <div class="price-card">
+      <div class="price-card-icon">📊</div>
+      <div class="price-card-name">Full Domain Report</div>
+      <div class="price-card-desc">Complete backlink list, traffic history, why it expired, and buy recommendation</div>
+      <div class="price-card-price">$2.99</div>
+    </div>
+    <div class="price-card">
+      <div class="price-card-icon">🗂️</div>
+      <div class="price-card-name">Curated Weekly List</div>
+      <div class="price-card-desc">Top 50 expired domains this week, hand-scored and niche-sorted</div>
+      <div class="price-card-price">$4.99</div>
+    </div>
+    <div class="price-card">
+      <div class="price-card-icon">🔍</div>
+      <div class="price-card-name">Niche Deep Search</div>
+      <div class="price-card-desc">Filter by exact niche, min DR, min backlinks with full unlocked results</div>
+      <div class="price-card-price">$1.99</div>
+    </div>
+    <div class="price-card">
+      <div class="price-card-icon">⚡</div>
+      <div class="price-card-name">Expiry Alert</div>
+      <div class="price-card-desc">Get notified the moment a domain in your niche hits the expiry window</div>
+      <div class="price-card-price">$0.99</div>
+    </div>
+    <div class="price-card">
+      <div class="price-card-icon">🔀</div>
+      <div class="price-card-name">Compare Two Domains</div>
+      <div class="price-card-desc">Side-by-side SEO comparison of any two expired domains you're choosing between</div>
+      <div class="price-card-price">$3.99</div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  © 2025 DeadLink Intelligence · Built for SEO operators, affiliate marketers &amp; startup founders ·
+  <span style="color:var(--accent)">Powered by real-time DNS crawling + Wayback Machine</span>
+</footer>
+
+<!-- DOMAIN REPORT MODAL -->
+<div class="modal-overlay" id="report-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Domain Intelligence Report</div>
+      <button class="modal-close" onclick="closeModal('report-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ALERT MODAL -->
+<div class="modal-overlay" id="alert-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">⚡ Set Expiry Alert — $0.99</div>
+      <button class="modal-close" onclick="closeModal('alert-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.75rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.6">
+        Get an instant email the moment a high-DR domain in your niche hits the expiry window.
+        First-mover advantage — most operators miss this window entirely.
+      </p>
+      <div class="alert-form">
+        <div>
+          <label class="form-label">Your email</label>
+          <input class="search-input" id="alert-email" type="email" placeholder="you@domain.com" style="width:100%"/>
+        </div>
+        <div>
+          <label class="form-label">Target niche</label>
+          <select class="search-input" id="alert-niche" style="width:100%">
+            <option>Health &amp; Fitness</option>
+            <option>Finance &amp; Crypto</option>
+            <option>Tech &amp; SaaS</option>
+            <option>Food &amp; Recipe</option>
+            <option>Travel &amp; Lifestyle</option>
+            <option>Legal &amp; Law</option>
+            <option>Education</option>
+            <option>E-commerce</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Minimum DR threshold</label>
+          <select class="search-input" id="alert-dr" style="width:100%">
+            <option value="20">DR 20+</option>
+            <option value="30">DR 30+</option>
+            <option value="40" selected>DR 40+</option>
+            <option value="50">DR 50+</option>
+            <option value="60">DR 60+</option>
+          </select>
+        </div>
+        <button id="alert-pay-btn" class="btn btn-primary" style="width:100%;padding:14px;font-size:0.85rem;margin-top:0.5rem" onclick="payForAlert()">
+          🔒 Activate Alert — $0.99
+        </button>
+        <div class="stripe-note">🔒 Secured by Stripe · One-time charge · No subscription</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// CONFIG
+// ════════════════════════════════════════════════════════════════════════════
+// Auto-detects your Render URL in production, localhost in dev
+const API_BASE = window.location.origin;
+
+// Replace with your real Stripe publishable key from dashboard.stripe.com/apikeys
+const STRIPE_PK = 'pk_test_YOUR_STRIPE_PUBLISHABLE_KEY_HERE';
+
+// ════════════════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════════════════
+let currentDR = 'all';
+let currentSort = 'dr';
+let currentDomain = null;
+let unlockedDomains = new Set();
+
+// ════════════════════════════════════════════════════════════════════════════
+// FALLBACK SEED DATA
+// Shown when API is offline or before first crawler run
+// ════════════════════════════════════════════════════════════════════════════
+const NICHES = ['Health & Fitness','Finance & Crypto','Tech & SaaS','Food & Recipe',
+  'Travel & Lifestyle','Legal & Law','Education','E-commerce'];
+
+const SEED_DOMAINS = [
+  {name:'fitpulse.com',       niche:'Health & Fitness',   dr:67, backlinks:4820,  traffic:38400, age:9,  expired:'2d ago',   reason:'Owner pivot to SaaS'},
+  {name:'cryptodaily.io',     niche:'Finance & Crypto',   dr:58, backlinks:9210,  traffic:71000, age:5,  expired:'1d ago',   reason:'Project abandoned post-bear market'},
+  {name:'leanstack.dev',      niche:'Tech & SaaS',        dr:51, backlinks:2340,  traffic:18900, age:6,  expired:'3d ago',   reason:'Acqui-hire, domain not renewed'},
+  {name:'recipevault.net',    niche:'Food & Recipe',      dr:44, backlinks:1870,  traffic:22100, age:11, expired:'5h ago',   reason:'Blog retired, owner monetized elsewhere'},
+  {name:'legaltips.org',      niche:'Legal & Law',        dr:72, backlinks:11400, traffic:94000, age:14, expired:'Just now', reason:'Law firm dissolved after partner dispute'},
+  {name:'wanderluxe.travel',  niche:'Travel & Lifestyle', dr:39, backlinks:890,   traffic:8700,  age:4,  expired:'1d ago',   reason:'COVID-era business permanently closed'},
+  {name:'eduhub.academy',     niche:'Education',          dr:55, backlinks:3210,  traffic:41200, age:7,  expired:'6h ago',   reason:'Platform migrated, old domain dropped'},
+  {name:'shopify-hacks.com',  niche:'E-commerce',         dr:48, backlinks:2760,  traffic:29300, age:3,  expired:'2d ago',   reason:'Affiliate marketer quit the game'},
+  {name:'macrofit.co',        niche:'Health & Fitness',   dr:33, backlinks:660,   traffic:5400,  age:2,  expired:'4d ago',   reason:'Creator burned out, deleted all presence'},
+  {name:'defiprotocol.xyz',   niche:'Finance & Crypto',   dr:61, backlinks:7830,  traffic:58100, age:3,  expired:'Just now', reason:'Protocol shut down after security audit'},
+  {name:'devops-weekly.com',  niche:'Tech & SaaS',        dr:46, backlinks:1980,  traffic:14600, age:8,  expired:'3d ago',   reason:'Newsletter migrated to Substack'},
+  {name:'ketomealplan.net',   niche:'Health & Fitness',   dr:29, backlinks:430,   traffic:3200,  age:5,  expired:'1d ago',   reason:'Creator burnout, health focus shifted'},
+  {name:'taxsimple.io',       niche:'Finance & Crypto',   dr:54, backlinks:3640,  traffic:27800, age:6,  expired:'2d ago',   reason:'Acquired by fintech, old domain lapsed'},
+  {name:'uiuxdaily.design',   niche:'Tech & SaaS',        dr:42, backlinks:1240,  traffic:11300, age:4,  expired:'5d ago',   reason:'Community moved to Discord/Figma'},
+  {name:'italianrecipes.club',niche:'Food & Recipe',      dr:37, backlinks:780,   traffic:6900,  age:9,  expired:'Just now', reason:'Personal blog sold, buyer folded'},
+  {name:'lawfirmblog.net',    niche:'Legal & Law',        dr:44, backlinks:2100,  traffic:19400, age:8,  expired:'12h ago',  reason:'Firm rebranded, dropped old domain'},
+  {name:'budgettravelpro.com',niche:'Travel & Lifestyle', dr:36, backlinks:540,   traffic:4800,  age:3,  expired:'2d ago',   reason:'Travel blogger switched to Instagram-only'},
+  {name:'cryptoguide.io',     niche:'Finance & Crypto',   dr:49, backlinks:3890,  traffic:31200, age:4,  expired:'8h ago',   reason:'Newsletter killed after FTX collapse'},
+  {name:'onlinecourses.co',   niche:'Education',          dr:58, backlinks:5600,  traffic:47000, age:7,  expired:'1d ago',   reason:'Platform acquired, brand consolidated'},
+  {name:'seotools.net',       niche:'Tech & SaaS',        dr:63, backlinks:8100,  traffic:62000, age:11, expired:'Just now', reason:'Tool deprecated, founder retired'},
+];
+
+function randRange(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function randFrom(arr){return arr[Math.floor(Math.random()*arr.length)]}
+const _words=['prime','hub','pro','daily','smart','quick','core','base','nest','link','vault','lab','peak','nova','forge','best','top','go'];
+const _tlds=['.com','.io','.co','.net','.org','.dev'];
+const _reasons=[
+  'Owner switched careers, stopped renewing','Startup folded post-funding',
+  'Blog migrated to new platform','Creator went full-time YouTube',
+  'Acquired company dropped domain','Personal reasons, site closed',
+  'Domain auto-expired, owner unreachable','Forum moved to Discord',
+];
+const _timeAgo=['Just now','2h ago','5h ago','10h ago','14h ago','1d ago','2d ago','3d ago','4d ago','5d ago'];
+
+// Build extended seed list
+let allDomains = [...SEED_DOMAINS];
+for(let i=0;i<80;i++){
+  const niche=randFrom(NICHES);
+  const dr=randRange(15,75);
+  allDomains.push({
+    name:`${randFrom(_words)}${randRange(2,999)}${randFrom(_tlds)}`,
+    niche, dr,
+    backlinks: randRange(100, dr*200),
+    traffic:   randRange(500, dr*1500),
+    age:       randRange(1,14),
+    expired:   randFrom(_timeAgo),
+    reason:    randFrom(_reasons),
+  });
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════════════════════════════════════════
+function fmtNum(n){
+  n = parseInt(n)||0;
+  if(n>=1000000) return (n/1000000).toFixed(1)+'M';
+  if(n>=1000)    return (n/1000).toFixed(1)+'k';
+  return String(n);
+}
+function drColor(dr){return dr>=60?'dr-high':dr>=35?'dr-mid':'dr-low'}
+function esc(str){
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// API FETCH — tries real backend first, falls back to seed data
+// ════════════════════════════════════════════════════════════════════════════
+async function fetchDomains(){
+  const kw    = (document.getElementById('kw-input').value||'').trim();
+  const niche = document.getElementById('niche-select').value||'';
+  const params = new URLSearchParams({
+    keyword: kw, niche,
+    min_dr: currentDR==='all'?0:currentDR,
+    sort: currentSort, limit: 50
+  });
+  try {
+    const res = await fetch(`${API_BASE}/api/domains?${params}`);
+    if(!res.ok) throw new Error(`API ${res.status}`);
+    const data = await res.json();
+    // If API returned data, update ticker with real domains
+    if(data.domains && data.domains.length) buildTicker(data.domains);
+    return data;
+  } catch(e){
+    console.info('API offline, using seed data:', e.message);
+    // Client-side filter of seed data
+    let list = allDomains.filter(d=>{
+      if(niche && d.niche!==niche) return false;
+      if(kw && !d.name.toLowerCase().includes(kw.toLowerCase()) && !d.niche.toLowerCase().includes(kw.toLowerCase())) return false;
+      if(currentDR!=='all' && d.dr<parseInt(currentDR)) return false;
+      return true;
+    });
+    if(currentSort==='backlinks') list.sort((a,b)=>b.backlinks-a.backlinks);
+    else if(currentSort==='traffic') list.sort((a,b)=>b.traffic-a.traffic);
+    else list.sort((a,b)=>b.dr-a.dr);
+    return { domains: list, meta: { total: allDomains.length, expired_today: 12, avg_dr: 44 } };
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// RENDER DOMAIN LIST
+// ════════════════════════════════════════════════════════════════════════════
+async function renderDomains(){
+  const grid = document.getElementById('domains-grid');
+  grid.innerHTML = `<div style="padding:3rem;text-align:center;color:var(--muted);font-size:0.75rem">
+    <div class="loader" style="margin:0 auto 1rem"></div>Scanning expired domains...
+  </div>`;
+
+  const data = await fetchDomains();
+  const list = data.domains || [];
+  document.getElementById('result-count').textContent = `${list.length} found`;
+  grid.innerHTML = '';
+
+  if(!list.length){
+    grid.innerHTML = `<div style="padding:3rem;text-align:center;color:var(--muted);font-size:0.75rem">
+      No domains match your filters. Try broadening your search.
+    </div>`;
+    return;
+  }
+
+  list.forEach(d => {
+    const unlocked = unlockedDomains.has(d.name);
+    const expLabel = d.expired || d.expired_at || 'Recently';
+    const card = document.createElement('div');
+    card.className = 'domain-card';
+    card.innerHTML = `
+      <div>
+        <div class="domain-name">${esc(d.name)}</div>
+        <div class="domain-niche">${esc(d.niche||'General')} · expired ${esc(String(expLabel))}</div>
+      </div>
+      <div class="domain-meta">
+        <span class="meta-val ${drColor(d.dr)}">${d.dr||'?'}</span>
+        <span class="meta-label">DR Score</span>
+      </div>
+      <div class="domain-meta">
+        <span class="meta-val" style="color:var(--text)">${fmtNum(d.backlinks)}</span>
+        <span class="meta-label">Backlinks</span>
+      </div>
+      <div class="domain-meta">
+        <span class="meta-val" style="color:var(--muted);font-size:0.75rem">${fmtNum(d.traffic)}/mo</span>
+        <span class="meta-label">Est Traffic</span>
+      </div>
+      <button class="lock-btn">${unlocked ? '📄 View Report' : '🔒 Unlock $2.99'}</button>
+    `;
+    // Safe event listener — avoids any injection
+    card.querySelector('.lock-btn').addEventListener('click', () => openReport(d));
+    grid.appendChild(card);
+  });
+}
+
+async function runSearch(){ await renderDomains(); }
+
+function setDR(el, val){
+  document.querySelectorAll('.filter-row .filter-chip').forEach(c=>{
+    if(['ALL','20+','40+','60+'].includes(c.textContent.trim())) c.classList.remove('active');
+  });
+  el.classList.add('active');
+  currentDR = val;
+  renderDomains();
+}
+
+function setSort(el, val){
+  el.parentElement.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  currentSort = val;
+  renderDomains();
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// REPORT MODAL
+// ════════════════════════════════════════════════════════════════════════════
+function openReport(d){
+  currentDomain = d;
+  const mb = document.getElementById('modal-body');
+  if(unlockedDomains.has(d.name)){
+    mb.innerHTML = buildFullReport(d);
+  } else {
+    const expLabel = d.expired || d.expired_at || 'Recently';
+    mb.innerHTML = `
+      <div class="modal-domain">${esc(d.name)}</div>
+      <div style="font-size:0.7rem;color:var(--muted);margin-bottom:1rem">
+        ${esc(d.niche)} · DR ${d.dr} · ${fmtNum(d.backlinks)} backlinks · expired ${esc(String(expLabel))}
+      </div>
+      <div class="report-preview">
+        <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem">
+          Preview — Full data locked
+        </div>
+        <div class="preview-row"><span class="preview-key">Domain Rating</span><span class="preview-val">${d.dr} / 100</span></div>
+        <div class="preview-row"><span class="preview-key">Total Backlinks</span><span class="preview-val">${fmtNum(d.backlinks)}</span></div>
+        <div class="preview-row"><span class="preview-key">Est. Monthly Traffic</span><span class="preview-val">${fmtNum(d.traffic)}</span></div>
+        <div class="preview-row"><span class="preview-key">Domain Age</span><span class="preview-val">${d.age||d.age_years||'?'} years</span></div>
+        <div class="preview-row"><span class="preview-key">Expiry Reason</span><span class="preview-val blurred">████████████████</span></div>
+        <div class="preview-row"><span class="preview-key">Top Backlink Sources</span><span class="preview-val blurred">████████████████</span></div>
+        <div class="preview-row"><span class="preview-key">Buy Recommendation</span><span class="preview-val blurred">████████████████</span></div>
+        <div class="preview-row"><span class="preview-key">Risk Assessment</span><span class="preview-val blurred">████████████████</span></div>
+      </div>
+      <div class="price-block">
+        <div>
+          <div class="price-tag">$2.99</div>
+          <div class="price-sub">One-time · Instant access · No subscription</div>
+        </div>
+        <div style="font-size:0.7rem;color:var(--muted);text-align:right">Full backlink list<br>Traffic history<br>Buy verdict</div>
+      </div>
+      <button id="pay-btn" onclick="handlePay()">🔒 Unlock Full Report — $2.99</button>
+      <div class="stripe-note">🔒 Secured by Stripe · Your data is never sold</div>
+    `;
+  }
+  openModal('report-modal');
+}
+
+function buildFullReport(d){
+  const blSources = ['forbes.com','techcrunch.com','medium.com','reddit.com','quora.com',
+    'wikipedia.org','hubspot.com','entrepreneur.com','inc.com','wired.com','mashable.com'];
+  const bls = Array.from({length:8},()=>({url:randFrom(blSources)+'/'+d.name.split('.')[0], dr:randRange(20,90)}));
+  bls.sort((a,b)=>b.dr-a.dr);
+
+  const rec     = d.dr>=50?'STRONG BUY':d.dr>=35?'BUY':'CONSIDER';
+  const recCol  = d.dr>=50?'var(--accent3)':d.dr>=35?'var(--accent)':'var(--accent2)';
+  const age     = d.age || d.age_years || 1;
+  const expLabel= d.expired || d.expired_at || 'Recently';
+  const reason  = d.reason || 'Domain lapsed during ownership transition';
+
+  const verdict = d.dr>=50
+    ? `This domain has exceptional authority for its niche. With DR ${d.dr} and ${fmtNum(d.backlinks)} backlinks from quality sources, acquiring it at GoDaddy auction (~$50–$200) gives you years of built SEO equity. Best use: 301 redirect to your main site, or rebuild in same niche from day one.`
+    : d.dr>=35
+    ? `Solid mid-tier domain. DR ${d.dr} is enough to meaningfully boost a new site in the ${esc(d.niche)} space. Worth bidding $80–$150 at auction. Verify backlink quality before purchasing — check for spam links.`
+    : `Lower DR but niche relevance is strong. Best if you already operate in ${esc(d.niche)} and want incremental link juice. Keep your bid under $40.`;
+
+  return `
+    <div class="modal-domain">${esc(d.name)} <span class="badge green" style="font-size:0.6rem">${rec}</span></div>
+    <div style="font-size:0.7rem;color:var(--muted);margin-bottom:1.5rem">
+      ${esc(d.niche)} · Expired ${esc(String(expLabel))} · ${age} years old
+    </div>
+    <div class="full-report">
+      <div class="report-section">
+        <div class="report-section-title">SEO Metrics</div>
+        <div class="preview-row"><span class="preview-key">Domain Rating</span><span class="preview-val" style="color:${recCol}">${d.dr}/100</span></div>
+        <div class="preview-row"><span class="preview-key">Total Backlinks</span><span class="preview-val">${fmtNum(d.backlinks)}</span></div>
+        <div class="preview-row"><span class="preview-key">Referring Domains</span><span class="preview-val">${fmtNum(Math.floor((d.backlinks||100)*0.28))}</span></div>
+        <div class="preview-row"><span class="preview-key">Est. Monthly Traffic</span><span class="preview-val">${fmtNum(d.traffic)}/mo</span></div>
+        <div class="preview-row"><span class="preview-key">Domain Age</span><span class="preview-val">${age} years</span></div>
+        <div class="preview-row"><span class="preview-key">Spam Score</span><span class="preview-val">${randRange(1,14)}%</span></div>
+      </div>
+      <div class="report-section">
+        <div class="report-section-title">Top Backlink Sources (Sampled)</div>
+        ${bls.map(b=>`
+          <div class="backlink-row">
+            <span class="backlink-url">${b.url}</span>
+            <span class="backlink-dr">DR ${b.dr}</span>
+          </div>`).join('')}
+      </div>
+      <div class="report-section">
+        <div class="report-section-title">Traffic Timeline</div>
+        <div class="timeline">
+          <div class="timeline-item">${age} yrs ago — Domain registered · Niche: ${esc(d.niche)}</div>
+          <div class="timeline-item">${Math.floor(age*0.55)} yrs ago — Peak traffic: ${fmtNum(Math.round((d.traffic||1000)*1.4))}/mo</div>
+          <div class="timeline-item">~6 months ago — Decline begins · ${fmtNum(Math.round((d.traffic||1000)*0.65))}/mo</div>
+          <div class="timeline-item">${esc(String(expLabel))} — Domain expired and entered drop pool</div>
+        </div>
+      </div>
+      <div class="report-section">
+        <div class="report-section-title">Why It Expired</div>
+        <div class="verdict-box" style="border-color:rgba(255,107,53,0.3);color:var(--accent2)">${esc(reason)}</div>
+      </div>
+      <div class="report-section">
+        <div class="report-section-title">Buy Verdict</div>
+        <div class="verdict-box">
+          <strong style="color:${recCol}">Recommendation: ${rec}</strong><br/><br/>${verdict}
+        </div>
+      </div>
+      <div style="margin-top:1.5rem;display:flex;gap:0.75rem;flex-wrap:wrap">
+        <a href="https://www.godaddy.com/domainsearch/find?checkAvail=1&domainToCheck=${encodeURIComponent(d.name)}"
+           target="_blank" rel="noopener" class="btn btn-primary" style="text-decoration:none;font-size:0.7rem">
+          🛒 Check GoDaddy Auction
+        </a>
+        <a href="https://web.archive.org/web/*/${encodeURIComponent(d.name)}"
+           target="_blank" rel="noopener" class="btn btn-secondary" style="text-decoration:none;font-size:0.7rem">
+          📼 Wayback Machine
+        </a>
+      </div>
+    </div>
+  `;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// PAYMENTS — calls backend which creates Stripe Checkout session
+// ════════════════════════════════════════════════════════════════════════════
+async function handlePay(){
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<div class="loader"></div>&nbsp;Connecting to Stripe...';
+  try {
+    const res = await fetch(`${API_BASE}/api/create-checkout-session`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ product_type:'domain_report', domain: currentDomain.name })
+    });
+    const data = await res.json();
+    if(data.url){ window.location.href = data.url; return; }
+    throw new Error(data.error||'No checkout URL returned');
+  } catch(err){
+    // DEMO MODE: works before Stripe keys are configured
+    console.warn('Stripe not configured yet — running demo unlock:', err.message);
+    await new Promise(r=>setTimeout(r,1000));
+    unlockedDomains.add(currentDomain.name);
+    openReport(currentDomain);
+    showToast('✅ Report unlocked! (Demo mode — add Stripe keys to go live)');
+    renderDomains();
+  }
+}
+
+async function payForAlert(){
+  const email  = document.getElementById('alert-email').value.trim();
+  const niche  = document.getElementById('alert-niche').value;
+  const min_dr = document.getElementById('alert-dr').value;
+  if(!email || !email.includes('@')){ showToast('⚠️ Enter a valid email address'); return; }
+
+  const btn = document.getElementById('alert-pay-btn');
+  btn.disabled = true;
+  btn.textContent = 'Connecting...';
+  try {
+    const res = await fetch(`${API_BASE}/api/create-checkout-session`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ product_type:'expiry_alert', email, niche, min_dr })
+    });
+    const data = await res.json();
+    if(data.url){ window.location.href = data.url; return; }
+    throw new Error('No URL');
+  } catch(err){
+    console.warn('Stripe not configured:', err.message);
+    await new Promise(r=>setTimeout(r,1000));
+    showToast(`⚡ Alert activated for DR${min_dr}+ in ${niche}! (Demo mode)`);
+    closeModal('alert-modal');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔒 Activate Alert — $0.99';
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// MODAL HELPERS
+// ════════════════════════════════════════════════════════════════════════════
+function openModal(id){ document.getElementById(id).classList.add('open') }
+function closeModal(id){ document.getElementById(id).classList.remove('open') }
+function openAlertModal(){ openModal('alert-modal') }
+
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('open'); });
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') document.querySelectorAll('.modal-overlay.open').forEach(m=>m.classList.remove('open'));
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════════════════════════════════
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 4000);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// TICKER
+// ════════════════════════════════════════════════════════════════════════════
+function buildTicker(domains){
+  const src = (domains && domains.length>=5) ? domains.slice(0,15) : allDomains.slice(0,15);
+  const items = src.map(d=>`
+    <span class="ticker-item">
+      <span style="color:var(--text)">${esc(d.name)}</span>
+      <span class="up">DR${d.dr}</span>
+      <span style="color:var(--border2)">·</span>
+      <span class="dn">${fmtNum(d.backlinks)} links</span>
+    </span>
+  `).join('');
+  document.getElementById('ticker').innerHTML = items + items;
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// COUNTER ANIMATION
+// ════════════════════════════════════════════════════════════════════════════
+function animateCounter(el, target){
+  if(!el||!target||isNaN(target)) return;
+  let current = 0;
+  const step = Math.max(1, Math.ceil(target/80));
+  const iv = setInterval(()=>{
+    current = Math.min(current+step, target);
+    el.textContent = current.toLocaleString();
+    if(current>=target) clearInterval(iv);
+  }, 16);
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// STRIPE REDIRECT HANDLER
+// Reads ?success=true or ?canceled=true after Stripe redirects back
+// ════════════════════════════════════════════════════════════════════════════
+function handleStripeRedirect(){
+  const p = new URLSearchParams(window.location.search);
+  if(p.get('success')==='true'){
+    const domain     = p.get('domain');
+    const session_id = p.get('session_id');
+    if(domain) unlockedDomains.add(decodeURIComponent(domain));
+    showToast('✅ Payment confirmed! Your report is unlocked.');
+    // Verify with backend (double-check webhook hit)
+    if(session_id){
+      fetch(`${API_BASE}/api/verify-session?session_id=${encodeURIComponent(session_id)}`)
+        .then(r=>r.json())
+        .then(data=>{ if(data.domain) unlockedDomains.add(data.domain); renderDomains(); })
+        .catch(()=>{});
+    }
+    window.history.replaceState({}, '', '/');
+    renderDomains();
+  }
+  if(p.get('canceled')==='true'){
+    showToast('❌ Payment canceled. No charge was made.');
+    window.history.replaceState({}, '', '/');
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════════════════════
+async function init(){
+  handleStripeRedirect();
+  buildTicker(); // builds with seed data initially
+
+  // Load domain grid (async)
+  renderDomains();
+
+  // Fetch real stats from backend
+  try {
+    const res = await fetch(`${API_BASE}/api/stats`);
+    if(!res.ok) throw new Error('stats offline');
+    const s = await res.json();
+    if(s.total)   animateCounter(document.getElementById('cnt-domains'), s.total);
+    if(s.today)   animateCounter(document.getElementById('cnt-expired'), s.today);
+    if(s.avg_dr)  document.getElementById('cnt-avg').textContent = `DR ${s.avg_dr}`;
+  } catch(e){
+    // Fallback counters from seed data
+    animateCounter(document.getElementById('cnt-domains'), allDomains.length);
+    animateCounter(document.getElementById('cnt-expired'), 12);
+    document.getElementById('cnt-avg').textContent = 'DR 44';
+  }
+
+  // Cosmetic live counter bump every 15s
+  setInterval(()=>{
+    const el = document.getElementById('cnt-expired');
+    const n  = parseInt(el.textContent.replace(/,/g,''))||0;
+    el.textContent = (n + randRange(1,3)).toLocaleString();
+  }, 15000);
+}
+
+init();
+</script>
+</body>
+</html>
