@@ -4,6 +4,10 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>DeadLink — Expired Domain Intelligence</title>
+<link rel="icon" type="image/x-icon" href="data:image/x-icon;base64,AAABAAEAEBAAAAAAIADsAAAAFgAAAIlQTkcNChoKAAAADUlIRFIAAAAQAAAAEAgGAAAAH/P/YQAAALNJREFUeJyVk7EVwjAMRE8pkzlYITVp0mcMBuJlDPc0pk5GYA67NQ32E7IssGrr3+kkEz41Xq4JHRVfTwKAITeHNfT0F0GSzXQ76sfb0gRRJnHI9Ji+7TrfhAyashxn3BZE522AVP43kwLIKhrEGoHk+rLVtM+qs58AXlaw1QhayXGi81WYJkBmkva52kgTwIOTTjjEdMCrteImQDseOQ4AEGD/RO0C+YqpKHZ+57AG0P2kN7dtX0Tc6O0GAAAAAElFTkSuQmCC"/>
+<link rel="icon" type="image/png" sizes="32x32" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABOUlEQVR4nL2XsRGDMAxFZV8qmCMrpE4a+oyRiTIGfRqoswJzmJZU5nSKJCzF8a+A46TH97exAyB15+sGDbQuc8jXsXVz2ivSB2lITSGC1Lx/9U1A9iGgX97KCdGB/YXHu7hYd7+ZASK+4WzfnpfiYus4mQECl37OiZJMZACLE5F7yNlekonc2OIEC/ALhFUiAABve20IFaAFBAtAx7IUwhNCdhbQglnclKRZsa4F6hDQYlwwMZRnIVIdkORdJzgdhpBTzWC6AGpCnLwA6zhBgO9gpiGZgulyAM+Oo2DS96nMIZTmuhZMbX0wOaAV0jKh/aTcIeTkCWZVAA9EdQAJQtpZmQAsG45SCNdSbNnxcE0xnGsITL/bg52VywGPpENPxAfFfyo3xc3XZQ5785aH09wcAGWglRO01we58aYKFNgg/AAAAABJRU5ErkJggg=="/>
+<link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAGxklEQVR4nO3dO1rrSBBA4TLfRLCO2cLEQ0LOMmZFswzym0A8W2AddnonAGNhJKvVXVVdpT4nvtc89FM0erQP4tD9n3//9vg4FLvT+9vB+mOYfAAAU0kWwFVfEMhUkybs5hcCMWnWivuu5T+DmbRrNVX10wBk8qhmWm+e0GAmr2qsbQINZvJuq7li0GCmXm2xVwQazNS7UoOroMFMUSqxeBM0mClaayYXQYOZonbL5ixoMFP0low2XSkkitYP0JbT+fh0tHppGrA5q3dr/0CrM2ZQk2bXZl2WHNeIQU1WmYNewgtqsugLtMVyYw0tqEmjqV2zCV2KFdSk2Z2I/nTeihTU1NrZsPqErsUJatJIFXQrSlBTa2qgtTCCmlo6aKyfLRA+/HpQf03af80T2mqiMqmppj9a/rM1uuPTcXVSn15eTT8Hj+6fH3t/CrupecnhMUmnqPcAeC2A1xd2DX3d4Z//zD9GtIC9PRXQIqC2DNjlqYEWAbV1wF5P9cKKx6m23//+Zf4xojbC3w+tqV/6BrVtoL6dyd12oLYN1MuZ3T4KattAPZ/pEyugtg3UPzN/BAvUtoH6ey4PyYLaNlBfcttoBtTkkevOSaC2iyn9kftWYKAmy1QvfZd2enl1QZfhIQHtyTr65fFumzV63JOR4SGB++fH4RFq5g56OpFAfUkL9ehr6e7b6YL6EpO6ve6gRUA9DdRthQAtAuppoK7PFfTa+g7UOo28jg4zoc+B+iOmdF3hQIuAmuoLCVoE1FRXWNAioKbthQYtAmraVnjQIqCm8lKAFvG50QjU+UsD+vTyOhTqkc8lt+QKWuPc6kioaxv5HHaaCS1ymVp7R810ri8VaJH9owZzW+lAi+wXNZjbcwetfSP7XlBrYR55/SzS+JYUvftC/fwY4u0xamIq69blIVkRmwPp8eBt5P2pR5/OIknX0Et5YGOLhNh1A201TUZFzXT+aFcT+tyoqKkzaMupMhJqpvOl7hMa1G2B+XvdQYuAujYw/ywEaBFQbw3M84UBLQLq0sC8XCjQIqBeC8y3CwdaBNRLgXm9bpe+S7O61yHTZXIglxce9LkR7/0A8vbSgD6nDTsiaiDXlw70dRrAe6MGsF7pQWvlcRN/hvd8yV7Isxw92suTL6MH6Emgzh+grwJ17gA9E6jzBuiFQJ0zQN8I1PkC9EqgzhWgCwJ1ngBdGKhzBOgNgTp+gN4YqGMH6IpAHTdAVwbqmAG6IVDHC9CNgTpWgFYI1HECtFKgjhGgFQN1/wCtHKj7BmiDQN0vQBsF6j4B2jBQ+wdo40DtG6AdArVfqd94M2JLOzkdxH6HpuPTUWWDyMw7ObFzUmNbtyLrve1YTZmAA7qylj31MqIWyQEb0BvT2v00K2qR2LABXdiI+1OvFRE2ZzkKsnoXgcxvjyFi931pCdArWR80UOsG6Bt5HSxQ6wXohbwPEqh1AvRMvQ4OqNsD9FW9Dwqo2wL0pN4H4xyo6wN00LKj7hWgP4synadlRt3r+wno4GVG3SMufYv+NLG4JOz1PooZvhe34n5oxSwP3sOvB3PUx6ejPHx+DRGXYCUNv+TQOnAek8jzyRetr8f7B2N40Bp5/lrNiNozQDfW46CDejlAN9TzYIN6vqFBZ/3D51yWp8k9v89Dg24pytTyQh3l610L0Dsoy6T2CNA7yQN1hiuKgN5RoAb07hodNaB32MioAb3TRkUN6MoynMMeEfXQoLOcW20pAmrP7/PQoFvLMKVFYqD2CtCNgfpSBNSAVgjUl3qjHh501hvZa/NG7f13yvCgNTu9vKaAvedJzUOyn2WAqJ0HOo8fnmlM6IHz2CLB+y49QH82wjnpufaGGtC0K9SAnjTqlBbZD2pAXwVq26xRA3omUNtmiRrQC4HaNivUgL4RqG2zQA3olUBtmzZqQBcEats0UXPpe2MjXiIXyXOZHNCVjQg7A2pANzYC7OmSy+udBGoDtHJ7AL72N4MlaiY0dckCtcYa+u70/nZQ+FxosLTvc9Z4vdP724HTdlSdFmrNHw5AU1OtGLUnPaCpuVqUFo9n3Yl8rD3UX5mGaitObcxnw0xoUqsUqeWDs1+gmdKk0RpWC8xTu0xoUm8JrceWBoAmk67xeu3P8Q00yw7S7IzYEvO12VnAXA6nDM0NYJYctKtmQbP0oOgtGV2c0KCmqN2yeXPJAWqK1prJ1TU0qClKJRaL/igENfWu1GDxWQ5QU6+22Nt02g7U5N1Wc5vPQ4OavKqx1oSTK4pkUcvQbLpSyLQm7VpNqYJkYlNNmoPRZMICm0qy+A3vsmQAOIn4LFH/B4ZmVlI6kUvVAAAAAElFTkSuQmCC"/>
+<meta name="theme-color" content="#0a2540"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
@@ -83,6 +87,7 @@ select.search-input{cursor:pointer}
 .meta-val{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700}
 .meta-label{font-size:0.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em}
 .dr-high{color:var(--accent3)}.dr-mid{color:var(--accent)}.dr-low{color:var(--accent2)}
+.meta-label .real-badge{color:var(--accent3);font-size:0.5rem;font-weight:700}
 .lock-btn{background:var(--dim);border:1px solid var(--border2);padding:7px 16px;border-radius:3px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;color:var(--accent);cursor:pointer;transition:all 0.2s;white-space:nowrap}
 .lock-btn:hover{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 /* MODALS */
@@ -210,7 +215,7 @@ footer{position:relative;z-index:2;border-top:1px solid var(--border);padding:2r
 <div class="section">
   <div class="section-header">
     <div class="section-title">Domain Results <span class="badge" id="result-count">Loading...</span></div>
-    <div style="font-size:0.65rem;color:var(--muted)">Preview free · Full report from $2.99</div>
+    <div style="font-size:0.65rem;color:var(--muted)">Preview free · Full report from $2.99 · <span style="opacity:0.6">DR scores via OpenPageRank</span></div>
   </div>
   <div class="domains-grid" id="domains-grid">
     <div style="padding:3rem;text-align:center;color:var(--muted);font-size:0.75rem">
@@ -260,6 +265,14 @@ footer{position:relative;z-index:2;border-top:1px solid var(--border);padding:2r
 <footer>
   © 2025 DeadLink Intelligence · Built for SEO operators, affiliate marketers &amp; startup founders ·
   <span style="color:var(--accent)">Powered by real-time DNS crawling + Wayback Machine</span>
+  <br/><br/>
+  <span style="color:var(--muted);font-size:0.6rem">
+    Domain authority scores sourced from
+    <a href="https://www.domcop.com/openpagerank/" target="_blank" rel="noopener"
+       style="color:var(--muted);text-decoration:underline;">OpenPageRank</a>
+    — a free, publicly available domain authority metric. Scores are an approximation
+    and not affiliated with Ahrefs or any paid SEO tool.
+  </span>
 </footer>
 
 <!-- DOMAIN REPORT MODAL -->
@@ -332,7 +345,7 @@ footer{position:relative;z-index:2;border-top:1px solid var(--border);padding:2r
 const API_BASE = window.location.origin;
 
 // Replace with your real Stripe publishable key from dashboard.stripe.com/apikeys
-const STRIPE_PK = 'pk_live_51Lt6og4Fo83uIeBjbi1P33RGCe7VIDLVRnfBj1y650FFO3O90V6FQB3XtjMgKyNLDLGBoQvMLtzAGDO9C7orAaRF00JGUalSP5';
+const STRIPE_PK = 'pk_test_YOUR_STRIPE_PUBLISHABLE_KEY_HERE';
 
 // ════════════════════════════════════════════════════════════════════════════
 // STATE
@@ -483,7 +496,7 @@ async function renderDomains(){
       </div>
       <div class="domain-meta">
         <span class="meta-val ${drColor(d.dr)}">${d.dr||'?'}</span>
-        <span class="meta-label">DR Score</span>
+        <span class="meta-label" id="dr-lbl-${d.name.replace(/\./g,'-')}">DR Score</span>
       </div>
       <div class="domain-meta">
         <span class="meta-val" style="color:var(--text)">${fmtNum(d.backlinks)}</span>
@@ -538,7 +551,7 @@ function openReport(d){
         <div style="font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.75rem">
           Preview — Full data locked
         </div>
-        <div class="preview-row"><span class="preview-key">Domain Rating</span><span class="preview-val">${d.dr} / 100</span></div>
+        <div class="preview-row"><span class="preview-key">Domain Rating</span><span class="preview-val">${d.dr} / 100 <span style="font-size:0.7rem;color:var(--accent3)">${d.score_source==="openpagerank" ? "(Real OPR)" : ""}</span></span></div>
         <div class="preview-row"><span class="preview-key">Total Backlinks</span><span class="preview-val">${fmtNum(d.backlinks)}</span></div>
         <div class="preview-row"><span class="preview-key">Est. Monthly Traffic</span><span class="preview-val">${fmtNum(d.traffic)}</span></div>
         <div class="preview-row"><span class="preview-key">Domain Age</span><span class="preview-val">${d.age||d.age_years||'?'} years</span></div>
@@ -588,6 +601,7 @@ function buildFullReport(d){
       <div class="report-section">
         <div class="report-section-title">SEO Metrics</div>
         <div class="preview-row"><span class="preview-key">Domain Rating</span><span class="preview-val" style="color:${recCol}">${d.dr}/100</span></div>
+        <div class="preview-row"><span class="preview-key">PageRank Score</span><span class="preview-val">${(d.opr_score > 0) ? (d.opr_score.toFixed(2) + " / 10 (OpenPageRank)") : "Estimated"}</span></div>
         <div class="preview-row"><span class="preview-key">Total Backlinks</span><span class="preview-val">${fmtNum(d.backlinks)}</span></div>
         <div class="preview-row"><span class="preview-key">Referring Domains</span><span class="preview-val">${fmtNum(Math.floor((d.backlinks||100)*0.28))}</span></div>
         <div class="preview-row"><span class="preview-key">Est. Monthly Traffic</span><span class="preview-val">${fmtNum(d.traffic)}/mo</span></div>
